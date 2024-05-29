@@ -14,4 +14,13 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" })) // accepting data
 app.use(express.static("public")) //storing data from user in public folder
 app.use(cookieParser())
 
+// routes import
+import userRouter from "./routes/user.routes.js"
+
+// routes decleration
+app.use("/api/v1/users", userRouter) // whenever the user goes for /users, the control will be user.controller.js
+// http://localhost:8000/api/users/register
+
+
+
 export { app };

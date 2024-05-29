@@ -92,6 +92,7 @@ userSchema.methods.isPasswordcorrect = async function (password) {
 }
 
 // Method to generate access token and refresh token
+// .sign method is use to generate tokens.
 userSchema.methods.generateAccessToken = function () {
     return jwt.sign({
         _id: this._id, // from database

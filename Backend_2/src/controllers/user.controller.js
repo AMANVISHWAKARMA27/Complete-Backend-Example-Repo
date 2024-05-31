@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asynchandler.js"
 import { apiError } from "../utils/apiError.js"
 import { User } from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { apiResponse } from "../utils/apiResponse.js"
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -16,8 +16,8 @@ const registerUser = asyncHandler(async (req, res) => {
     // return response/error
 
     // ----------------step 1 and step 2 and step 3--------------------
-    const { username, email, fullname, password } = req.body
-    console.log("email: ", email) // checking if we are able to access the fields
+    const {fullname, email, username, password } = req.body
+    // console.log("email: ", email) // checking if we are able to access the fields
 
     // if (fullname === "") {
     //     throw new apiError(400, 'fullname is required')
@@ -33,12 +33,12 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // findOne with or will check if anyOne one of the filed satisfies a condition.
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{ username }, { email }]
     })
 
     if (existedUser) {
-        throw new apiError(409, "User wil email or username alreadyu exists.")
+        throw new apiError(409, "User wil email or username already exists.")
     }
 
     // -------------------step 4 and step 5----------------------//
@@ -46,44 +46,60 @@ const registerUser = asyncHandler(async (req, res) => {
     //multer adds a new field to req- files
     // files has a field named avatar which has object.So we want first object of avatar.
     // Then we access the path of the first object.
-    const avatarLocalPath = req.files?.avatar[0]?.path // its on s=our local
-    console.log("from req: ",req)
-    console.log("from req.files: ",req.files)
-    console.log("from req.files.avatar: ",req.files?.avatar)
 
-    const coverImageLocalPath = req.files?.coverImage[0]?.path // same as above
-    console.log("from req.files.coverImage: ",req.files?.coverImage)
-
-    if (!avatarLocalPath){
-        throw new apiError(400, "Avatar is required.")
+    // console.log("avatar: ", req.files)
+    // const avatarLocalPath = req.files?.avatar[0]?.path;
+    let avatarLocalPath;
+    if ( req.files && Array.isArray(req.files.avatar) &&
+     req.files.avatar.length > 0) {
+        avatarLocalPath = req.files.avatar[0].path
     }
+    // console.log("avatarLocalPath", avatarLocalPath)
+
+    // console.log("from req: ", req)
+    // console.log("from req.files: ", req.files)
+    // console.log("from req.files.avatar: ", req.files?.avatar)
+
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path // same as above
+    let coverImageLocalPath;
+    if ( req.files && Array.isArray(req.files.coverImage) &&
+     req.files.coverImage.length > 0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+    }
+    // console.log("from req.files.coverImage: ", req.files?.coverImage)
+
+    // if (!avatarLocalPath) {
+    //     throw new apiError(400, "Avatar is required.")
+    // }
+    // console.log("avatar: ", avatarLocalPath)
 
     // upload on cloudinary
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+    // console.log("coverimage: ", coverImageLocalPath)
 
-    if (!avatar) {
-        throw new apiError(400, "Avatar is required.")
-    }
+    // if (!avatar) {
+    //     throw new apiError(400, "Avatar is required.")
+    // }
 
     // --------------------step 6 and step 7 and step 8-----------------------//
     const user = await User.create({
         fullname,
-        avatar: avatar.url,
-        coverImage : coverImage?.url || "",
+        avatar: avatar?.url || "",
+        coverImage: coverImage?.url || "",
         email,
         password,
-        username : username.toLowerCase()
+        username: username.toLowerCase()
     })
 
     // this verffies if we really has a user or not
     // actually, mongodb automatically adda field call '_id', to differentiate between data
     // we are using this _id to clearify.
-    const createdUser = await User.findById(uer._id)
-    // this will select all the field and remove password and refreshToken
-    .select(
-        "-password -refreshToken"
-    )
+    const createdUser = await User.findById(user._id)
+        // this will select all the field and remove password and refreshToken
+        .select(
+            "-password -refreshToken"
+        )
     if (!createdUser) {
         throw new apiError(500, "Something went wrong registering the user.")
     }

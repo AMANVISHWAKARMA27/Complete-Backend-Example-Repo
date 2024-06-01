@@ -135,9 +135,14 @@ const loginUser = asyncHandler(async (req, res) => {
     // send cookies
 
     const { email, username, password } = req.body
-    if (!username || !email) {
+    if (!username && !email) {
         throw new apiError(400, "username or email is required.")
     }
+
+    //alternative code
+    // if (!(username || email)) {
+    //     throw new apiError(400, "username or email is required.")
+    // }
 
     const existedUser = await User.findOne({
         $or: [{ username }, { email }]
@@ -169,7 +174,7 @@ const loginUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .cookie("accessToken", accessToken, options)
-        .cookies("refreshToken", refreshToken, options)
+        .cookie("refreshToken", refreshToken, options)
         .json(
             new apiResponse(
                 200, {
@@ -179,7 +184,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 })
 
-const logoutUser = asyncHandler(async(req, res) => {
+const logoutUser = asyncHandler(async (req, res) => {
     // get user
     // remove cookies
     // reset access and refresh token
@@ -187,12 +192,12 @@ const logoutUser = asyncHandler(async(req, res) => {
         req.user._id,
         {
             // update selected field
-            $set:{
+            $set: {
                 refreshToken: undefined
             }
         },
         {
-            new : true
+            new: true
         }
     )
 
@@ -202,10 +207,10 @@ const logoutUser = asyncHandler(async(req, res) => {
     }
 
     return res
-    .status(200)
-    .clearCookie("accessToken", options)
-    .clearCookie("refreshToken", options)
-    .json(new apiResponse(200, {}, "User logged out duccessfully."))
+        .status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json(new apiResponse(200, {}, "User logged out successfully."))
 
 })
 
